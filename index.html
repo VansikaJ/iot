@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SoilSense — Smart Agriculture</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --soil: #2C1A0E;
+    --earth: #5C3D1E;
+    --clay: #9B6B3A;
+    --moss: #3D6B43;
+    --leaf: #6BAA6C;
+    --mist: #E8F0E4;
+    --cream: #FAF7F0;
+    --gold: #D4A84B;
+    --sky: #B8D4C8;
+  }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+  body {
+    background: var(--cream);
+    color: var(--soil);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--moss);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease, background 0.2s;
+    transform: translate(-50%, -50%);
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--clay);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.35s cubic-bezier(.25,.8,.25,1), opacity 0.2s;
+    transform: translate(-50%, -50%);
+    opacity: 0.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.4rem 3rem;
+    background: rgba(250,247,240,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(92,61,30,0.08);
+  }
+  .nav-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--soil);
+    letter-spacing: -0.02em;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .logo-dot { width: 10px; height: 10px; background: var(--leaf); border-radius: 50%; display: inline-block; animation: pulse 2.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:0.6} }
+
+  nav ul { list-style: none; display: flex; gap: 2.5rem; }
+  nav ul li a {
+    text-decoration: none; color: var(--earth); font-size: 0.85rem;
+    font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+  }
+  nav ul li a::after {
+    content: ''; position: absolute; bottom: -3px; left: 0; right: 0;
+    height: 1.5px; background: var(--moss); transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  nav ul li a:hover { color: var(--moss); }
+  nav ul li a:hover::after { transform: scaleX(1); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 8rem 4rem 4rem 5rem;
+    position: relative; z-index: 2;
+  }
+
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--mist); border: 1px solid var(--sky);
+    color: var(--moss); font-size: 0.75rem; font-weight: 500;
+    padding: 0.4rem 1rem; border-radius: 100px; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 2rem;
+    width: fit-content;
+    animation: fadeSlideUp 0.8s ease both;
+  }
+
+  .hero-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(3rem, 5vw, 5.5rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: var(--soil);
+    margin-bottom: 1.5rem;
+    animation: fadeSlideUp 0.9s 0.1s ease both;
+  }
+  .hero-title em { font-style: italic; color: var(--moss); }
+
+  .hero-sub {
+    font-size: 1.05rem; line-height: 1.7; color: var(--clay);
+    max-width: 420px; margin-bottom: 3rem;
+    font-weight: 300;
+    animation: fadeSlideUp 1s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex; gap: 1rem; align-items: center;
+    animation: fadeSlideUp 1s 0.3s ease both;
+  }
+
+  .btn-primary {
+    background: var(--soil); color: var(--cream);
+    padding: 0.85rem 2rem; border-radius: 100px;
+    font-size: 0.9rem; font-weight: 500; text-decoration: none;
+    border: none; cursor: pointer;
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(44,26,14,0.25);
+  }
+  .btn-primary:hover { transform: translateY(-2px); background: var(--earth); box-shadow: 0 8px 30px rgba(44,26,14,0.3); }
+
+  .btn-ghost {
+    color: var(--moss); font-size: 0.9rem; font-weight: 500; text-decoration: none;
+    display: flex; align-items: center; gap: 0.4rem;
+    transition: gap 0.2s;
+  }
+  .btn-ghost:hover { gap: 0.8rem; }
+
+  /* HERO RIGHT */
+  .hero-right {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  .hero-bg-circle {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle at 40% 40%, var(--mist), var(--sky) 60%, var(--leaf) 100%);
+    border-radius: 50%;
+    position: absolute;
+    animation: slowFloat 8s ease-in-out infinite;
+    opacity: 0.5;
+  }
+
+  @keyframes slowFloat { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-20px) scale(1.03)} }
+
+  .sensor-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.4rem 1.8rem;
+    position: absolute;
+    box-shadow: 0 8px 40px rgba(44,26,14,0.1);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--soil);
+    border: 1px solid rgba(155,107,58,0.12);
+    animation: floatCard 4s ease-in-out infinite;
+    min-width: 140px;
+  }
+  .sensor-card .sc-label { color: var(--clay); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.3rem; }
+  .sensor-card .sc-val { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 700; }
+  .sensor-card .sc-unit { font-size: 0.75rem; color: var(--clay); }
+
+  .sc-temp { top: 18%; left: 8%; animation-delay: 0s; }
+  .sc-humid { top: 55%; left: 3%; animation-delay: 1.2s; }
+  .sc-moisture { top: 28%; right: 5%; animation-delay: 0.6s; }
+  .sc-status { bottom: 20%; right: 8%; animation-delay: 1.8s; }
+
+  @keyframes floatCard { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--leaf); display: inline-block; margin-right: 0.4rem; animation: pulse 2s infinite; }
+
+  .soil-rings { width: 300px; height: 300px; position: relative; z-index: 2; }
+
+  /* SCROLL INDICATOR */
+  .scroll-hint {
+    position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--clay); opacity: 0.6;
+    animation: fadeSlideUp 1.2s 0.6s ease both;
+  }
+  .scroll-line {
+    width: 1px; height: 40px; background: var(--clay);
+    animation: scrollLine 1.5s ease-in-out infinite;
+    transform-origin: top;
+  }
+  @keyframes scrollLine { 0%{transform:scaleY(0);opacity:0} 50%{transform:scaleY(1);opacity:1} 100%{transform:scaleY(1);opacity:0} }
+  @keyframes fadeSlideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+  /* SECTION: WHY */
+  .section-why {
+    padding: 7rem 5rem;
+    background: var(--soil);
+    color: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .section-why::before {
+    content: '';
+    position: absolute; top: -80px; left: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, var(--earth) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .why-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 5rem;
+  }
+  .why-num { font-family: 'Fraunces', serif; font-size: 6rem; color: var(--earth); line-height: 1; opacity: 0.5; }
+  .why-title { font-family: 'Fraunces', serif; font-size: clamp(2.5rem, 4vw, 4rem); font-weight: 300; line-height: 1.1; max-width: 500px; }
+  .why-title strong { font-weight: 700; color: var(--gold); }
+
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .why-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 2.5rem 2rem;
+    transition: background 0.3s, transform 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .why-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-4px); }
+  .why-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
+  .why-card:hover::before { transform: scaleX(1); }
+  .why-card-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .why-card h3 { font-family: 'Fraunces', serif; font-size: 1.4rem; margin-bottom: 0.7rem; font-weight: 600; }
+  .why-card p { color: rgba(250,247,240,0.55); font-size: 0.9rem; line-height: 1.65; }
+
+  /* SECTION: HOW */
+  .section-how { padding: 7rem 5rem; background: var(--cream); }
+
+  .section-label {
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--clay); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.7rem;
+  }
+  .section-label::before { content: ''; width: 30px; height: 1px; background: var(--clay); }
+
+  .how-title {
+    font-family: 'Fraunces', serif; font-size: clamp(2rem, 3.5vw, 3.5rem);
+    font-weight: 700; color: var(--soil); margin-bottom: 4rem; line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .how-step { position: relative; }
+  .how-step + .how-step::before {
+    content: '→'; position: absolute; left: -1.2rem; top: 1.5rem;
+    color: var(--clay); font-size: 1rem; opacity: 0.4;
+  }
+  .step-num {
+    font-family: 'Fraunces', serif; font-size: 3.5rem; font-weight: 700;
+    color: var(--mist); line-height: 1; margin-bottom: 1rem;
+    -webkit-text-stroke: 1.5px var(--sky);
+  }
+  .step-title { font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 600; color: var(--soil); margin-bottom: 0.5rem; }
+  .step-desc { font-size: 0.85rem; color: var(--clay); line-height: 1.65; }
+
+  /* SECTION: TICKER */
+  .section-ticker {
+    background: var(--moss);
+    padding: 1.8rem 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker-track {
+    display: inline-flex; gap: 4rem;
+    animation: ticker 20s linear infinite;
+  }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .ticker-item {
+    display: inline-flex; align-items: center; gap: 1rem;
+    font-family: 'Fraunces', serif; font-size: 1.1rem;
+    color: var(--cream); white-space: nowrap;
+  }
+  .ticker-item span { color: var(--gold); font-size: 0.8rem; opacity: 0.7; }
+
+  /* SECTION: IMPACT */
+  .section-impact { padding: 7rem 5rem; background: var(--mist); }
+  .impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  .impact-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .impact-stat {
+    background: white; border-radius: 16px; padding: 2rem;
+    border: 1px solid rgba(92,61,30,0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .impact-stat:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(44,26,14,0.1); }
+  .impact-stat .big-num { font-family: 'Fraunces', serif; font-size: 3rem; font-weight: 700; color: var(--moss); line-height: 1; }
+  .impact-stat .stat-label { font-size: 0.82rem; color: var(--clay); margin-top: 0.5rem; line-height: 1.4; }
+
+  .impact-text .section-label { margin-bottom: 1.5rem; }
+  .impact-text h2 { font-family: 'Fraunces', serif; font-size: clamp(2rem,3vw,3rem); font-weight: 700; color: var(--soil); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 1.5rem; }
+  .impact-text p { color: var(--clay); font-size: 1rem; line-height: 1.8; margin-bottom: 1rem; }
+
+  /* SECTION: FUTURE */
+  .section-future {
+    background: var(--soil);
+    color: var(--cream);
+    padding: 7rem 5rem;
+    text-align: center;
+  }
+  .future-title { font-family: 'Fraunces', serif; font-size: clamp(2.5rem,5vw,5rem); font-weight: 300; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 1.5rem; }
+  .future-title em { font-style: italic; color: var(--gold); }
+  .future-sub { color: rgba(250,247,240,0.5); font-size: 1rem; max-width: 500px; margin: 0 auto 3rem; line-height: 1.7; }
+  .future-tags { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+  .future-tag {
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 100px; padding: 0.6rem 1.4rem;
+    font-size: 0.85rem; color: rgba(250,247,240,0.7);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .future-tag:hover { background: var(--gold); color: var(--soil); border-color: var(--gold); }
+
+  /* FOOTER */
+  footer {
+    background: var(--cream);
+    padding: 2.5rem 5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid rgba(92,61,30,0.1);
+    font-size: 0.82rem; color: var(--clay);
+  }
+
+  /* SECTION: DEMO */
+  .section-demo {
+    padding: 7rem 5rem;
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .section-demo::before {
+    content: '';
+    position: absolute; bottom: -200px; right: -200px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--mist) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .demo-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 4rem;
+    align-items: start;
+    margin-top: 3rem;
+  }
+
+  /* Dashboard mockup */
+  .demo-dashboard {
+    background: var(--soil);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(44,26,14,0.25);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .dash-topbar {
+    background: rgba(255,255,255,0.04);
+    padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .dash-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dd-red { background: #FF5F57; }
+  .dd-yellow { background: #FFBD2E; }
+  .dd-green { background: #28C840; }
+  .dash-title { font-size: 0.75rem; color: rgba(250,247,240,0.4); margin-left: auto; letter-spacing: 0.05em; }
+
+  .dash-body { padding: 1.5rem; }
+
+  .dash-header-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.2rem;
+  }
+  .dash-header-row h3 {
+    font-family: 'Fraunces', serif; font-size: 1rem; color: var(--cream); font-weight: 600;
+  }
+  .dash-live-badge {
+    display: flex; align-items: center; gap: 0.4rem;
+    background: rgba(107,170,108,0.15); border: 1px solid rgba(107,170,108,0.3);
+    border-radius: 100px; padding: 0.25rem 0.7rem;
+    font-size: 0.68rem; color: var(--leaf); letter-spacing: 0.06em;
+  }
+  .dash-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--leaf); animation: pulse 1.5s infinite; }
+
+  /* Gauge row */
+  .gauge-row {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 0.8rem;
+    margin-bottom: 1.2rem;
+  }
+  .gauge-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+    transition: background 0.3s;
+  }
+  .gauge-card:hover { background: rgba(255,255,255,0.08); }
+  .gauge-icon { font-size: 1.2rem; margin-bottom: 0.4rem; }
+  .gauge-val {
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--cream); line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+  .gauge-lbl { font-size: 0.62rem; color: rgba(250,247,240,0.35); text-transform: uppercase; letter-spacing: 0.06em; }
+  .gauge-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-top: 0.6rem; overflow: hidden; }
+  .gauge-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+  .gf-temp { background: linear-gradient(90deg, #D4A84B, #E8C87A); }
+  .gf-humid { background: linear-gradient(90deg, #3D6B43, #6BAA6C); }
+  .gf-moist { background: linear-gradient(90deg, #5B8DD9, #8BB4F0); }
+
+  /* Chart area */
+  .dash-chart-area {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  .chart-label { font-size: 0.68rem; color: rgba(250,247,240,0.35); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.8rem; }
+  .mini-chart { width: 100%; height: 60px; }
+
+  /* Alert row */
+  .alert-row {
+    display: flex; flex-direction: column; gap: 0.6rem;
+  }
+  .alert-item {
+    display: flex; align-items: center; gap: 0.8rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-size: 0.78rem; color: rgba(250,247,240,0.6);
+    transition: background 0.2s;
+  }
+  .alert-item:hover { background: rgba(255,255,255,0.07); }
+  .alert-dot-ok { width: 7px; height: 7px; border-radius: 50%; background: var(--leaf); flex-shrink: 0; }
+  .alert-dot-warn { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; animation: pulse 1.2s infinite; }
+  .alert-time { font-size: 0.65rem; color: rgba(250,247,240,0.25); margin-left: auto; }
+
+  /* Demo controls panel */
+  .demo-controls {
+    display: flex; flex-direction: column; gap: 2rem;
+  }
+
+  .demo-controls h3 {
+    font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 700;
+    color: var(--soil); line-height: 1.2; letter-spacing: -0.02em;
+  }
+  .demo-controls p { color: var(--clay); font-size: 0.92rem; line-height: 1.7; }
+
+  .control-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  .control-label {
+    font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--clay);
+    display: flex; justify-content: space-between;
+  }
+  .control-label span { color: var(--moss); font-weight: 600; font-size: 0.8rem; }
+
+  .demo-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px;
+    background: var(--mist); border-radius: 2px; outline: none;
+    cursor: pointer;
+    border: none;
+  }
+  .demo-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--moss);
+    box-shadow: 0 2px 8px rgba(61,107,67,0.4);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .demo-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+    box-shadow: 0 4px 16px rgba(61,107,67,0.5);
+  }
+
+  .demo-status-box {
+    background: var(--mist);
+    border: 1px solid var(--sky);
+    border-radius: 16px;
+    padding: 1.4rem 1.6rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+  }
+  .dsb-icon { font-size: 1.8rem; flex-shrink: 0; margin-top: 0.1rem; }
+  .dsb-title { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 700; color: var(--soil); margin-bottom: 0.3rem; }
+  .dsb-desc { font-size: 0.82rem; color: var(--clay); line-height: 1.5; }
+
+  .pump-toggle {
+    display: flex; align-items: center; gap: 1rem;
+    background: white; border: 1px solid rgba(92,61,30,0.1);
+    border-radius: 16px; padding: 1.2rem 1.6rem;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .pump-toggle:hover { box-shadow: 0 8px 24px rgba(44,26,14,0.1); transform: translateY(-2px); }
+  .pump-toggle-label { font-size: 0.85rem; font-weight: 500; color: var(--soil); flex: 1; }
+  .pump-toggle-label small { display: block; font-size: 0.72rem; color: var(--clay); font-weight: 400; margin-top: 0.1rem; }
+  .toggle-switch {
+    width: 44px; height: 24px; border-radius: 100px;
+    background: var(--mist); border: 2px solid var(--sky);
+    position: relative; transition: background 0.3s, border-color 0.3s;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on { background: var(--moss); border-color: var(--moss); }
+  .toggle-knob {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: white; position: absolute; top: 2px; left: 2px;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle-switch.on .toggle-knob { transform: translateX(20px); }
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* LIVE BAR */
+  .live-bar { width: 100%; height: 4px; background: rgba(0,0,0,0.07); border-radius: 2px; overflow: hidden; margin-top: 0.7rem; }
+  .live-fill { height: 100%; background: var(--leaf); border-radius: 2px; animation: fillBar 3s ease-in-out infinite alternate; }
+  .fill-temp { animation-delay: 0s; width: 72%; }
+  .fill-humid { animation-delay: 0.5s; width: 58%; }
+  .fill-moist { animation-delay: 1s; width: 85%; }
+  @keyframes fillBar { from{opacity:0.5;transform:scaleX(0.6);transform-origin:left} to{opacity:1;transform:scaleX(1)} }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span class="logo-dot"></span> SoilSense</div>
+  <ul>
+    <li><a href="#why">Why</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#impact">Impact</a></li>
+    <li><a href="#future">Future</a></li>
+    <li><a href="https://github.com/VansikaJ/Soil-Health-Monitoring-System" class="nav-cta">GitHub ↗</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">🌱 IoT · Agriculture · Real-Time</div>
+    <h1 class="hero-title">The soil knows.<br><em>We listen.</em></h1>
+    <p class="hero-sub">A smart monitoring system that reads the earth's vital signs — and tells you exactly when your crops need attention, before it's too late.</p>
+    <div class="hero-cta">
+      <a href="#how" class="btn-primary">See How It Works</a>
+      <a href="#impact" class="btn-ghost">View Impact →</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-bg-circle"></div>
+
+    <!-- Animated SVG Rings -->
+    <svg class="soil-rings" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="150" cy="150" r="120" stroke="#3D6B43" stroke-width="1" stroke-dasharray="6 4" opacity="0.3">
+        <animateTransform attributeName="transform" type="rotate" values="0 150 150;360 150 150" dur="30s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="150" cy="150" r="90" stroke="#9B6B3A" stroke-width="1" stroke-dasharray="3 6" opacity="0.25">
+        <animateTransform attributeName="transform" type="rotate" values="360 150 150;0 150 150" dur="20s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="150" cy="150" r="60" stroke="#D4A84B" stroke-width="1.5" stroke-dasharray="8 3" opacity="0.35">
+        <animateTransform attributeName="transform" type="rotate" values="0 150 150;360 150 150" dur="14s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="150" cy="150" r="30" fill="#6BAA6C" opacity="0.15"/>
+      <circle cx="150" cy="150" r="18" fill="#3D6B43" opacity="0.8"/>
+      <circle cx="150" cy="150" r="8" fill="#FAF7F0"/>
+      <!-- Signal pulse waves -->
+      <circle cx="150" cy="150" r="18" stroke="#6BAA6C" stroke-width="1.5" opacity="0">
+        <animate attributeName="r" values="18;80" dur="2.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0" dur="2.5s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="150" cy="150" r="18" stroke="#6BAA6C" stroke-width="1.5" opacity="0">
+        <animate attributeName="r" values="18;80" dur="2.5s" begin="1.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0" dur="2.5s" begin="1.2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+
+    <!-- Floating Sensor Cards -->
+    <div class="sensor-card sc-temp">
+      <div class="sc-label">Temperature</div>
+      <div class="sc-val" id="tempVal">31.2<span class="sc-unit">°C</span></div>
+      <div class="live-bar"><div class="live-fill fill-temp"></div></div>
+    </div>
+    <div class="sensor-card sc-humid">
+      <div class="sc-label">Humidity</div>
+      <div class="sc-val" id="humidVal">29.6<span class="sc-unit">%</span></div>
+      <div class="live-bar"><div class="live-fill fill-humid"></div></div>
+    </div>
+    <div class="sensor-card sc-moisture">
+      <div class="sc-label">Soil Moisture</div>
+      <div class="sc-val">42<span class="sc-unit">%</span></div>
+      <div class="live-bar"><div class="live-fill fill-moist"></div></div>
+    </div>
+    <div class="sensor-card sc-status" style="min-width:160px;">
+      <div class="sc-label">System Status</div>
+      <div style="font-size:0.9rem;font-weight:500;margin-top:0.2rem;">
+        <span class="status-dot"></span>Live &amp; Monitoring
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="section-ticker">
+  <div class="ticker-track">
+    <div class="ticker-item">🌡 Real-Time Temperature <span>——</span></div>
+    <div class="ticker-item">💧 Soil Moisture Sensing <span>——</span></div>
+    <div class="ticker-item">☁️ Cloud Data Sync <span>——</span></div>
+    <div class="ticker-item">🤖 Automated Irrigation <span>——</span></div>
+    <div class="ticker-item">📱 Mobile Dashboard <span>——</span></div>
+    <div class="ticker-item">🌿 Crop Health Insights <span>——</span></div>
+    <!-- Duplicate for seamless loop -->
+    <div class="ticker-item">🌡 Real-Time Temperature <span>——</span></div>
+    <div class="ticker-item">💧 Soil Moisture Sensing <span>——</span></div>
+    <div class="ticker-item">☁️ Cloud Data Sync <span>——</span></div>
+    <div class="ticker-item">🤖 Automated Irrigation <span>——</span></div>
+    <div class="ticker-item">📱 Mobile Dashboard <span>——</span></div>
+    <div class="ticker-item">🌿 Crop Health Insights <span>——</span></div>
+  </div>
+</div>
+
+<!-- WHY -->
+<section class="section-why" id="why">
+  <div class="why-header reveal">
+    <div class="why-num">01</div>
+    <h2 class="why-title">Why does the soil<br><strong>need a voice?</strong></h2>
+  </div>
+  <div class="why-grid">
+    <div class="why-card reveal reveal-delay-1">
+      <div class="why-card-icon">🌾</div>
+      <h3>Invisible Stress</h3>
+      <p>Crops suffer silently. Moisture loss and temperature shifts happen underground — far from a farmer's eye — until the damage is already done.</p>
+    </div>
+    <div class="why-card reveal reveal-delay-2">
+      <div class="why-card-icon">💡</div>
+      <h3>Guesswork Costs Lives</h3>
+      <p>Traditional farming relies on intuition. One wrong irrigation decision can cost an entire season. Data turns instinct into certainty.</p>
+    </div>
+    <div class="why-card reveal reveal-delay-3">
+      <div class="why-card-icon">🌍</div>
+      <h3>A Planetary Problem</h3>
+      <p>Water is finite. Over-irrigation wastes billions of litres annually. Smart sensing means every drop goes exactly where it's needed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section-how" id="how">
+  <div class="section-label reveal">How It Works</div>
+  <h2 class="how-title reveal">Four steps from<br>earth to insight.</h2>
+  <div class="how-steps">
+    <div class="how-step reveal reveal-delay-1">
+      <div class="step-num">01</div>
+      <div class="step-title">Sensors Deployed</div>
+      <p class="step-desc">IoT sensors are placed at root depth — where it actually matters — measuring temperature and moisture continuously.</p>
+    </div>
+    <div class="how-step reveal reveal-delay-2">
+      <div class="step-num">02</div>
+      <div class="step-title">Data Captured</div>
+      <p class="step-desc">Readings are taken every few seconds, capturing every fluctuation throughout the day with precision.</p>
+    </div>
+    <div class="how-step reveal reveal-delay-3">
+      <div class="step-num">03</div>
+      <div class="step-title">Cloud Synced</div>
+      <p class="step-desc">Data streams live to the cloud — organized, visualized, and ready for action anywhere, anytime.</p>
+    </div>
+    <div class="how-step reveal" style="transition-delay:0.4s">
+      <div class="step-num">04</div>
+      <div class="step-title">Action Taken</div>
+      <p class="step-desc">Farmers receive insights and alerts. Irrigation adjusts. Crops thrive. Resources are saved. Repeat.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="section-demo" id="demo">
+  <div class="section-label reveal">Interactive Demo</div>
+  <h2 class="how-title reveal">Play with the<br>system yourself.</h2>
+
+  <div class="demo-layout">
+
+    <!-- LEFT: Dashboard Mockup -->
+    <div class="demo-dashboard reveal">
+      <div class="dash-topbar">
+        <div class="dash-dot dd-red"></div>
+        <div class="dash-dot dd-yellow"></div>
+        <div class="dash-dot dd-green"></div>
+        <div class="dash-title">SoilSense Dashboard</div>
+      </div>
+      <div class="dash-body">
+        <div class="dash-header-row">
+          <h3>Field Zone A — Root Depth</h3>
+          <div class="dash-live-badge"><div class="dash-live-dot"></div> LIVE</div>
+        </div>
+
+        <!-- Gauge row -->
+        <div class="gauge-row">
+          <div class="gauge-card">
+            <div class="gauge-icon">🌡</div>
+            <div class="gauge-val" id="d-temp">31.2°</div>
+            <div class="gauge-lbl">Temperature</div>
+            <div class="gauge-bar"><div class="gauge-fill gf-temp" id="bar-temp" style="width:72%"></div></div>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-icon">💧</div>
+            <div class="gauge-val" id="d-humid">29.6%</div>
+            <div class="gauge-lbl">Humidity</div>
+            <div class="gauge-bar"><div class="gauge-fill gf-humid" id="bar-humid" style="width:58%"></div></div>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-icon">🌱</div>
+            <div class="gauge-val" id="d-moist">42%</div>
+            <div class="gauge-lbl">Soil Moisture</div>
+            <div class="gauge-bar"><div class="gauge-fill gf-moist" id="bar-moist" style="width:42%"></div></div>
+          </div>
+        </div>
+
+        <!-- Mini chart -->
+        <div class="dash-chart-area">
+          <div class="chart-label">Moisture trend — last 10 readings</div>
+          <svg class="mini-chart" id="miniChart" viewBox="0 0 300 60" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#5B8DD9" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#5B8DD9" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path id="chartArea" fill="url(#chartGrad)"/>
+            <path id="chartLine" fill="none" stroke="#5B8DD9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- Alerts -->
+        <div class="alert-row">
+          <div class="alert-item">
+            <div class="alert-dot-ok"></div>
+            Temperature within optimal range
+            <span class="alert-time">now</span>
+          </div>
+          <div class="alert-item" id="moistureAlert">
+            <div class="alert-dot-ok" id="alertDot"></div>
+            <span id="alertText">Soil moisture healthy — no action needed</span>
+            <span class="alert-time">now</span>
+          </div>
+          <div class="alert-item" id="pumpAlert" style="display:none">
+            <div class="alert-dot-warn"></div>
+            <span>🚿 Pump activated — watering in progress</span>
+            <span class="alert-time">now</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Controls -->
+    <div class="demo-controls reveal reveal-delay-2">
+      <div>
+        <h3>Simulate real field<br>conditions.</h3>
+        <p>Drag the sliders to change soil conditions and watch the dashboard respond in real time — just like the actual hardware does.</p>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Soil Moisture <span id="moistLabel">42%</span></div>
+        <input type="range" class="demo-slider" id="moistSlider" min="0" max="100" value="42">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Temperature <span id="tempLabel">31.2°C</span></div>
+        <input type="range" class="demo-slider" id="tempSlider" min="20" max="45" value="31" step="0.1">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Humidity <span id="humidLabel">29.6%</span></div>
+        <input type="range" class="demo-slider" id="humidSlider" min="10" max="90" value="30">
+      </div>
+
+      <!-- Status box -->
+      <div class="demo-status-box" id="statusBox">
+        <div class="dsb-icon" id="statusIcon">✅</div>
+        <div>
+          <div class="dsb-title" id="statusTitle">All Systems Optimal</div>
+          <div class="dsb-desc" id="statusDesc">Soil moisture is within healthy range. No irrigation required at this time.</div>
+        </div>
+      </div>
+
+      <!-- Pump toggle -->
+      <div class="pump-toggle" id="pumpToggle" onclick="togglePump()">
+        <div class="pump-toggle-label">
+          Manual Pump Override
+          <small id="pumpLabel">Tap to activate water pump</small>
+        </div>
+        <div class="toggle-switch" id="toggleSwitch">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="section-impact" id="impact">
+  <div class="impact-grid">
+    <div class="impact-stats reveal">
+      <div class="impact-stat">
+        <div class="big-num">2s</div>
+        <div class="stat-label">Data refresh rate — nearly real-time awareness</div>
+      </div>
+      <div class="impact-stat">
+        <div class="big-num">30%</div>
+        <div class="stat-label">Moisture threshold — irrigation triggers automatically</div>
+      </div>
+      <div class="impact-stat">
+        <div class="big-num">24h</div>
+        <div class="stat-label">Continuous monitoring without human intervention</div>
+      </div>
+      <div class="impact-stat">
+        <div class="big-num">∞</div>
+        <div class="stat-label">Scalable to any farm size or crop type</div>
+      </div>
+    </div>
+    <div class="impact-text reveal reveal-delay-2">
+      <div class="section-label">Real Impact</div>
+      <h2>Turning data into<br>greener harvests.</h2>
+      <p>This isn't just a student project. It's a prototype for the future of farming — where decisions are driven by evidence, not estimation.</p>
+      <p>By combining affordable IoT hardware with cloud intelligence, SoilSense makes precision agriculture accessible to every farmer, not just large-scale operations.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FUTURE -->
+<section class="section-future" id="future">
+  <div class="reveal">
+    <h2 class="future-title">The future is<br><em>alive under your feet.</em></h2>
+    <p class="future-sub">We're only scratching the surface. The next iteration of SoilSense goes deeper — literally and technologically.</p>
+    <div class="future-tags">
+      <div class="future-tag">🧠 AI Disease Detection</div>
+      <div class="future-tag">🧪 pH &amp; Nutrient Sensing</div>
+      <div class="future-tag">🚿 Automated Tank Filling</div>
+      <div class="future-tag">🛰 Satellite Integration</div>
+      <div class="future-tag">🌾 Sprinkler Automation</div>
+      <div class="future-tag">📊 Predictive Analytics</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div><strong style="font-family:'Fraunces',serif">SoilSense</strong> — Smart Agriculture IoT Project</div>
+  <div>Vansika Jhawar</div>
+</footer>
+
+<script>
+  // ── Custom Cursor ──────────────────────────────────────────
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top  = my + 'px';
+  });
+
+  (function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animateRing);
+  })();
+
+  // Cursor grow on interactive elements
+  document.querySelectorAll('a, button, .why-card, .impact-stat, .future-tag').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(2)';
+      cursor.style.background = '#D4A84B';
+      ring.style.opacity = '0.3';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+      cursor.style.background = 'var(--moss)';
+      ring.style.opacity = '0.6';
+    });
+  });
+
+  // ── Scroll Reveal ──────────────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Live Sensor Value Jitter ───────────────────────────────
+  function jitter(base, range) { return (base + (Math.random() - 0.5) * range).toFixed(1); }
+
+  // ── Demo Section ───────────────────────────────────────────
+  let pumpOn = false;
+  let moistHistory = [42,44,41,43,42,40,39,42,43,42];
+
+  function updateChart() {
+    const pts = moistHistory;
+    const w = 300, h = 60, pad = 4;
+    const min = Math.min(...pts) - 5, max = Math.max(...pts) + 5;
+    const xs = pts.map((_, i) => pad + (i / (pts.length - 1)) * (w - pad*2));
+    const ys = pts.map(v => h - pad - ((v - min) / (max - min)) * (h - pad*2));
+    const line = xs.map((x,i) => (i===0?`M${x},${ys[i]}`:`L${x},${ys[i]}`)).join(' ');
+    const area = line + ` L${xs[xs.length-1]},${h} L${xs[0]},${h} Z`;
+    document.getElementById('chartLine').setAttribute('d', line);
+    document.getElementById('chartArea').setAttribute('d', area);
+  }
+
+  function updateDashboard(moist, temp, humid) {
+    // Gauges
+    document.getElementById('d-moist').textContent = moist + '%';
+    document.getElementById('d-temp').textContent = temp + '°';
+    document.getElementById('d-humid').textContent = humid + '%';
+    document.getElementById('bar-moist').style.width = moist + '%';
+    document.getElementById('bar-temp').style.width = Math.min(100, ((temp - 20) / 25) * 100) + '%';
+    document.getElementById('bar-humid').style.width = humid + '%';
+
+    // Update chart history
+    moistHistory.push(parseFloat(moist));
+    if (moistHistory.length > 10) moistHistory.shift();
+    updateChart();
+
+    // Alerts & status
+    const alertDot  = document.getElementById('alertDot');
+    const alertText = document.getElementById('alertText');
+    const pumpAlert = document.getElementById('pumpAlert');
+    const statusIcon  = document.getElementById('statusIcon');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusDesc  = document.getElementById('statusDesc');
+
+    if (pumpOn) {
+      statusIcon.textContent = '🚿';
+      statusTitle.textContent = 'Pump Active — Manual Override';
+      statusDesc.textContent = 'Water pump is running. Monitor moisture levels to avoid over-irrigation.';
+      pumpAlert.style.display = 'flex';
+      alertDot.className = 'alert-dot-warn';
+      alertText.textContent = 'Pump manually activated by operator';
+    } else if (moist < 30) {
+      alertDot.className = 'alert-dot-warn';
+      alertText.textContent = '⚠️ Moisture below 30% — pump will auto-activate';
+      pumpAlert.style.display = 'none';
+      statusIcon.textContent = '⚠️';
+      statusTitle.textContent = 'Low Moisture Alert';
+      statusDesc.textContent = 'Soil moisture has dropped below the 30% threshold. Automated irrigation will begin shortly.';
+    } else if (temp > 38) {
+      alertDot.className = 'alert-dot-warn';
+      alertText.textContent = '🌡 High temperature — monitor closely';
+      pumpAlert.style.display = 'none';
+      statusIcon.textContent = '🔥';
+      statusTitle.textContent = 'High Temperature Warning';
+      statusDesc.textContent = 'Soil temperature is elevated. Increased watering frequency is recommended to prevent crop stress.';
+    } else {
+      alertDot.className = 'alert-dot-ok';
+      alertText.textContent = 'Soil moisture healthy — no action needed';
+      pumpAlert.style.display = 'none';
+      statusIcon.textContent = '✅';
+      statusTitle.textContent = 'All Systems Optimal';
+      statusDesc.textContent = 'Soil moisture is within healthy range. No irrigation required at this time.';
+    }
+  }
+
+  function togglePump() {
+    pumpOn = !pumpOn;
+    const sw = document.getElementById('toggleSwitch');
+    const lbl = document.getElementById('pumpLabel');
+    sw.classList.toggle('on', pumpOn);
+    lbl.textContent = pumpOn ? 'Pump is running — tap to deactivate' : 'Tap to activate water pump';
+    const m = parseInt(document.getElementById('moistSlider').value);
+    const t = parseFloat(document.getElementById('tempSlider').value);
+    const h = parseInt(document.getElementById('humidSlider').value);
+    updateDashboard(m, t.toFixed(1), h);
+  }
+
+  // Slider listeners
+  document.getElementById('moistSlider').addEventListener('input', function() {
+    document.getElementById('moistLabel').textContent = this.value + '%';
+    updateDashboard(this.value, parseFloat(document.getElementById('tempSlider').value).toFixed(1), document.getElementById('humidSlider').value);
+  });
+  document.getElementById('tempSlider').addEventListener('input', function() {
+    document.getElementById('tempLabel').textContent = parseFloat(this.value).toFixed(1) + '°C';
+    updateDashboard(document.getElementById('moistSlider').value, parseFloat(this.value).toFixed(1), document.getElementById('humidSlider').value);
+  });
+  document.getElementById('humidSlider').addEventListener('input', function() {
+    document.getElementById('humidLabel').textContent = this.value + '%';
+    updateDashboard(document.getElementById('moistSlider').value, parseFloat(document.getElementById('tempSlider').value).toFixed(1), this.value);
+  });
+
+  updateChart();
+
+  // ── Live Hero Sensor Jitter ────────────────────────────────
+  setInterval(() => {
+    document.getElementById('tempVal').innerHTML  = jitter(31.2, 0.6) + '<span class="sc-unit">°C</span>';
+    document.getElementById('humidVal').innerHTML = jitter(29.2, 0.8) + '<span class="sc-unit">%</span>';
+  }, 2000);
+</script>
+</body>
+</html>
